@@ -1,4 +1,4 @@
-
+```
 Mutant
 cloud
 🔥 kcal:  	263
@@ -13,44 +13,45 @@ nc mutant.flu.xxx 8888
 nc mutant2.flu.xxx 8888
 
 The gym is closed. You cannot complete workouts anymore.
-
+```
 
 This challenge has 5 namespaces
-'NAME              STATUS   AGE
+```
+NAME              STATUS   AGE
 default           Active   71s
 flag-reader       Active   60s
 kube-node-lease   Active   71s
 kube-public       Active   71s
 kube-system       Active   71s
 mutant            Active   60s
-
+```
+```
 $ kubectl get pods -n mutant
 No resources found in mutant namespace.
 $ kubectl get pods -n flag-reader
 NAME                           READY   STATUS              RESTARTS   AGE
 flag-reader                    0/1     ContainerCreating   0          2s
 pod-applier-78fd9f7868-xdhhj   1/1     Running             0          100s
-
+```
 pod-applier pod is creating and destroying flag-reader pod continuously 
-
+```
 $ kubectl logs -f flag-reader -n flag-reader
-
 Executing cat /flag/flag...
 cat: can't open '/flag/flag': Permission denied
 
 Shutting down...
-
+```
 now the thing is pod contains `flag` secret and pod  has not permission because we have different user who is trying to read the file but only owner has permission to read the secret. 
 but webhookconfigurations permission is given. So we can mutate the webhook configuration. 
 
 How it all works together:
 
-When a pod is created or updated in the cluster, Kubernetes checks if there are any applicable webhooks.
-It finds your MutatingWebhookConfiguration and sends an admission review to your ngrok URL.
-ngrok forwards this request to your local Flask server.
-Your Flask server receives the request, modifies the pod spec to change the secret's permissions, and sends back a response with the patch.
-Kubernetes applies this patch before actually creating/updating the pod.
-As a result, the flag-reader pod is created with the secret mounted with full permissions (0o777), allowing it to read the flag.
+- When a pod is created or updated in the cluster, Kubernetes checks if there are any applicable webhooks.
+- It finds your MutatingWebhookConfiguration and sends an admission review to your ngrok URL.
+- ngrok forwards this request to your local Flask server.
+- Your Flask server receives the request, modifies the pod spec to change the secret's permissions, and sends back a response with the patch.
+- Kubernetes applies this patch before actually creating/updating the pod.
+- As a result, the flag-reader pod is created with the secret mounted with full permissions (0o777), allowing it to read the flag.
 
 here is the flask server 
 ```
@@ -131,4 +132,5 @@ $ kubectl logs -f flag-reader -n flag-reader
 Executing cat /flag/flag...
 flag{get_those_ga1nz}
 
-Shutting down..```
+Shutting down..
+```
